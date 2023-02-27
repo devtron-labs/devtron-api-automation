@@ -31,6 +31,8 @@ type StructAppStoreDiscoverRouter struct {
 	checkAppExistsResponseDTO               ResponseDTOs.CheckAppExistsResponseDTO
 	checkAppExistsRequestDTO                RequestDTOs.CheckAppExistsRequestDTO
 	getAllInstalledAppResponseDTO           ResponseDTOs.GetAllInstalledAppResponseDTO
+	chartGroupInstallRequestDTO             RequestDTOs.ChartGroupInstallRequestDTO
+	chartGroupInstallResponseDTO            ResponseDTOs.ChartGroupInstallResponseDTO
 }
 
 func HitDiscoverAppApi(queryParams map[string]string, authToken string) ResponseDTOs.DiscoverAppApiResponse {
@@ -203,6 +205,42 @@ func HitApiGetAllInstalledApps(authToken string) ResponseDTOs.GetAllInstalledApp
 	return appStoreDiscoverRouter.getAllInstalledAppResponseDTO
 }
 
+func HitApiDeployBulkApps(payload string, authToken string) ResponseDTOs.ChartGroupInstallResponseDTO {
+	resp, err := Base.MakeApiCall(DeployBulkApiUrl, http.MethodPost, payload, nil, authToken)
+	Base.HandleError(err, DeployBulkApi)
+	structAppStoreRouter := StructAppStoreDiscoverRouter{}
+	appStoreRouter := structAppStoreRouter.UnmarshalGivenResponseBody(resp.Body(), DeployBulkApi)
+	return appStoreRouter.chartGroupInstallResponseDTO
+}
+
+func getPayloadforDeployBulkApps(projectId int, appName string, environmentId int, appStoreVersion int,
+	valuesOverrideYaml string, referenceValueId int, referenceValueKind string, chartGroupEntryId int,
+	defaultclusterComponent bool, chartGroupId int, numberofApps int) RequestDTOs.ChartGroupInstallRequestDTO {
+	structAppStoreDiscoverRouter := StructAppStoreDiscoverRouter{}
+	structAppStoreDiscoverRouter.chartGroupInstallRequestDTO.ProjectId = projectId
+	chartGroupInstallChartRequest := make([]RequestDTOs.ChartGroupInstallChartRequest, numberofApps)
+	for i := 0; i < numberofApps; i++ {
+		chartGroupInstallChartRequest[i].AppName = appName
+		chartGroupInstallChartRequest[i].EnvironmentId =
+			environmentId
+		chartGroupInstallChartRequest[i].AppStoreVersion =
+			appStoreVersion
+		chartGroupInstallChartRequest[i].ValuesOverrideYaml =
+			valuesOverrideYaml
+		chartGroupInstallChartRequest[i].ReferenceValueId =
+			referenceValueId
+		chartGroupInstallChartRequest[i].ReferenceValueKind =
+			referenceValueKind
+		chartGroupInstallChartRequest[i].ChartGroupEntryId =
+			chartGroupEntryId
+		chartGroupInstallChartRequest[i].DefaultClusterComponent =
+			defaultclusterComponent
+	}
+	structAppStoreDiscoverRouter.chartGroupInstallRequestDTO.ChartGroupInstallChartRequest = chartGroupInstallChartRequest
+	structAppStoreDiscoverRouter.chartGroupInstallRequestDTO.ChartGroupId = chartGroupId
+	return structAppStoreDiscoverRouter.chartGroupInstallRequestDTO
+}
+
 func (structAppStoreDiscoverRouter StructAppStoreDiscoverRouter) UnmarshalGivenResponseBody(response []byte, apiName string) StructAppStoreDiscoverRouter {
 	switch apiName {
 	case DiscoverAppApi:
@@ -235,6 +273,8 @@ func (structAppStoreDiscoverRouter StructAppStoreDiscoverRouter) UnmarshalGivenR
 		json.Unmarshal(response, &structAppStoreDiscoverRouter.checkAppExistsResponseDTO)
 	case GetAllInstalledAppApi:
 		json.Unmarshal(response, &structAppStoreDiscoverRouter.getAllInstalledAppResponseDTO)
+	case DeployBulkApi:
+		json.Unmarshal(response, &structAppStoreDiscoverRouter.chartGroupInstallResponseDTO)
 	}
 	return structAppStoreDiscoverRouter
 }

@@ -28,8 +28,10 @@ const (
 	SearchAppStoreChartByNameApiUrl               string = "/orchestrator/app-store/discover/search"
 	GetInstalledAppDetailsApiUrl                  string = "orchestrator/app-store/installed-app/detail"
 	GetInstalledAppDetailsApi                     string = "GetInstalledAppDetailsApi"
+	DeployBulkApiUrl                              string = "/orchestrator/app-store/group/install"
 	CheckAppExistsApiUrl                          string = "/orchestrator/app-store/application/exists"
 	CheckAppExistsApi                             string = "CheckAppExistsApi"
 	GetAllInstalledAppApi                         string = "GetAllInstalledAppApi"
+	DeployBulkApi                                 string = "DeployBulkApi"
 	GetAllInstalledAppApiUrl                      string = "/orchestrator/app-store/installed-app"
 )
