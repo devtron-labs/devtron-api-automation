@@ -47,7 +47,7 @@ func CreateUserPayloadForDynamicToken(responseOfCreateApiToken ResponseDTOs.Crea
 
 func (suite *RbacFlowTestSuite) TestRbacFlowsForDevtronApps() {
 
-	var allRoles = []string{"view"}
+	var allRoles = []string{"admin", "manager", "trigger", "view"}
 	for _, role := range allRoles {
 		var (
 			createAppApiResponsePtr *PipelineConfigRouter.CreateAppRequestDto
@@ -182,11 +182,12 @@ func (suite *RbacFlowTestSuite) TestRbacFlowsForDevtronApps() {
 				}
 				log.Println("=== Here we are fetching latestChartReferenceId ===")
 				time.Sleep(2 * time.Second)
-				getChartReferenceResponse := PipelineConfigRouter.HitGetChartReferenceViaAppId(strconv.Itoa(createAppApiResponse.Id), apiToken)
+				// Checking now for super-admin, will do later with api-tokens
+				getChartReferenceResponse := PipelineConfigRouter.HitGetChartReferenceViaAppId(strconv.Itoa(createAppApiResponse.Id), suite.authToken)
 				latestChartRef := getChartReferenceResponse.Result.LatestChartRef
 
 				log.Println("=== Here we are fetching Template using getAppTemplateAPI ===")
-				getTemplateResponse := PipelineConfigRouter.HitGetTemplateViaAppIdAndChartRefId(strconv.Itoa(createAppApiResponse.Id), strconv.Itoa(latestChartRef), apiToken)
+				getTemplateResponse := PipelineConfigRouter.HitGetTemplateViaAppIdAndChartRefId(strconv.Itoa(createAppApiResponse.Id), strconv.Itoa(latestChartRef), suite.authToken)
 
 				log.Println("=== Here we are fetching DefaultAppOverride from template response ===")
 				defaultAppOverride := getTemplateResponse.Result.GlobalConfig.DefaultAppOverride
@@ -200,21 +201,21 @@ func (suite *RbacFlowTestSuite) TestRbacFlowsForDevtronApps() {
 				updatedByteValueOfSaveDeploymentTemplate := []byte(finalJson)
 
 				log.Println("=== Here we are hitting SaveTemplate API ===")
-				PipelineConfigRouter.HitSaveDeploymentTemplateApi(updatedByteValueOfSaveDeploymentTemplate, apiToken)
+				PipelineConfigRouter.HitSaveDeploymentTemplateApi(updatedByteValueOfSaveDeploymentTemplate, suite.authToken)
 
 				log.Println("=== Here we are saving Global Configmap ===")
 				requestPayloadForConfigMap := HelperRouter.GetRequestPayloadForSecretOrConfig(0, "-config1", createAppApiResponse.Id, "environment", "kubernetes", false, false, false, false)
 				byteValueOfSaverConfigMap, _ := json.Marshal(requestPayloadForConfigMap)
-				globalConfigMap := HelperRouter.HitSaveGlobalConfigMap(byteValueOfSaverConfigMap, apiToken)
+				globalConfigMap := HelperRouter.HitSaveGlobalConfigMap(byteValueOfSaverConfigMap, suite.authToken)
 				configId = globalConfigMap.Result.Id
 
 				log.Println("=== Here we are saving Global Secret ===")
 				requestPayloadForSecret := HelperRouter.GetRequestPayloadForSecretOrConfig(configId, "-secret1", createAppApiResponse.Id, "environment", "kubernetes", false, false, true, false)
 				byteValueOfSecret, _ := json.Marshal(requestPayloadForSecret)
-				HelperRouter.HitSaveGlobalSecretApi(byteValueOfSecret, apiToken)
+				HelperRouter.HitSaveGlobalSecretApi(byteValueOfSecret, suite.authToken)
 
 				log.Println("=== Here we are saving workflow with Pre/Post CI ===")
-				workflowResponse = PipelineConfigRouter.HitCreateWorkflowApiWithFullPayload(createAppApiResponse.Id, apiToken)
+				workflowResponse = PipelineConfigRouter.HitCreateWorkflowApiWithFullPayload(createAppApiResponse.Id, suite.authToken)
 				preStageScript, _ := testUtils.GetByteArrayOfGivenJsonFile("../testdata/PipeLineConfigRouter/preStageScript.txt")
 				postStageScript, _ := testUtils.GetByteArrayOfGivenJsonFile("../testdata/PipeLineConfigRouter/postStageScript.txt")
 
@@ -222,7 +223,12 @@ func (suite *RbacFlowTestSuite) TestRbacFlowsForDevtronApps() {
 				payload := PipelineConfigRouter.GetRequestPayloadForSaveCdPipelineApi(createAppApiResponse.Id, workflowResponse.Result.AppWorkflowId, responseOfCreateEnvironment.Result.Id, workflowResponse.Result.CiPipelines[0].Id, workflowResponse.Result.CiPipelines[0].ParentCiPipeline, "AUTOMATIC", string(preStageScript), string(postStageScript), "AUTOMATIC")
 				bytePayload, _ := json.Marshal(payload)
 				savePipelineResponse := PipelineConfigRouter.HitSaveCdPipelineApi(bytePayload, apiToken)
+				statusCode = getExpectedStatusCode(role, UserRouter.SAVECDPIPELINE)
 
+				assert.Equal(suite.T(), true, getStatusCheck(statusCode, savePipelineResponse.Code))
+				if savePipelineResponse.Code != 200 && getStatusCheck(statusCode, savePipelineResponse.Code) {
+					savePipelineResponse = PipelineConfigRouter.HitSaveCdPipelineApi(bytePayload, suite.authToken)
+				}
 				createAppApiResponsePtr = &createAppApiResponse
 				workflowResponsePtr = &workflowResponse
 				savePipelineResponsePtr = &savePipelineResponse
