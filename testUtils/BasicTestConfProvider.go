@@ -153,6 +153,8 @@ func GetAuthToken() string {
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const charset2 = "abcdefghijklmnopqrstuvwxyz" +
+	"0123456789"
 
 var seededRand *rand.Rand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
@@ -165,6 +167,13 @@ func GetRandomStringOfGivenLength(length int) string {
 	return string(b)
 }
 
+func GetRandomStringOfGivenLengthOfLowerCaseAndNumber(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset2[seededRand.Intn(len(charset2))]
+	}
+	return string(b)
+}
 func GetRandomNumberOf9Digit() int {
 	return 100000000 + rand.Intn(999999999-100000000)
 }

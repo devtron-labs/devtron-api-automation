@@ -100,7 +100,7 @@ github.com/munnerz/goautoneg
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/r3labs/sse/v2 v2.8.1
+# github.com/r3labs/sse/v2 v2.10.0
 ## explicit; go 1.13
 github.com/r3labs/sse/v2
 # github.com/stretchr/testify v1.8.1

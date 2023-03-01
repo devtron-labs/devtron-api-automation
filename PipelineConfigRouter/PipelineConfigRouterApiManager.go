@@ -307,6 +307,7 @@ func GetEnvironmentConfigPipelineConfigRouter() (*EnvironmentConfigPipelineConfi
 		return nil, errors.New("could not get config from environment")
 	}
 	return cfg, err
+}
 }*/
 
 func GetAppRequestDto(appName string, teamId int, templateId int) CreateAppRequestDto {

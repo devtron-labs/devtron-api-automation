@@ -5,11 +5,10 @@ import (
 	"automation-suite/AppListingRouter/ResponseDTOs"
 	Base "automation-suite/testUtils"
 	"encoding/json"
+	"github.com/stretchr/testify/suite"
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/stretchr/testify/suite"
 )
 
 type StructAppListingRouter struct {

@@ -188,7 +188,21 @@ func CreateRoleGroupPayload(caseName string) RequestDTOs.RoleGroup {
 
 		roleFilter = CreateRoleFilterWithChartGroupsOnly()
 		listOfRoleFilter = append(listOfRoleFilter, roleFilter)
+	case WithDevtronAppsOnlyDynamic:
+		roleFilter := CreateRoleFilterWithDevtronAppsOnlyDynamic(ENTITY, PROJECT, ENV, APP, ACTION, ACCESS_TYPE)
+		listOfRoleFilter = append(listOfRoleFilter, roleFilter)
 	}
+
+	roleGroup.Name = Base.GetRandomStringOfGivenLength(10)
+	roleGroup.Description = "This is the sample Description for Testing Purpose via Automation only"
+	roleGroup.RoleFilters = listOfRoleFilter
+	return roleGroup
+}
+func CreateRoleGroupPayloadDynamicForDevtronApp(entity, team, env, app, action, accessType string) RequestDTOs.RoleGroup {
+	var roleGroup RequestDTOs.RoleGroup
+	var listOfRoleFilter []ResponseDTOs.RoleFilter
+	roleFilter := CreateRoleFilterWithDevtronAppsOnlyDynamic(entity, team, env, app, action, accessType)
+	listOfRoleFilter = append(listOfRoleFilter, roleFilter)
 
 	roleGroup.Name = Base.GetRandomStringOfGivenLength(10)
 	roleGroup.Description = "This is the sample Description for Testing Purpose via Automation only"
@@ -199,6 +213,11 @@ func CreateRoleGroupPayload(caseName string) RequestDTOs.RoleGroup {
 func CreateRoleFilterWithDevtronAppsOnly() ResponseDTOs.RoleFilter {
 	var roleFilter ResponseDTOs.RoleFilter
 	roleFilter = CreateRoleFilter("", "devtron-demo", "", "view", "")
+	return roleFilter
+}
+func CreateRoleFilterWithDevtronAppsOnlyDynamic(entity, team, env, app, action, accessType string) ResponseDTOs.RoleFilter {
+	var roleFilter ResponseDTOs.RoleFilter
+	roleFilter = CreateRoleFilterForDynamicEntityName(entity, team, env, action, accessType, app)
 	return roleFilter
 }
 
@@ -220,6 +239,16 @@ func CreateRoleFilter(entity string, teamName string, environment string, action
 	roleFilter.Entity = entity
 	roleFilter.Team = teamName
 	roleFilter.EntityName = ""
+	roleFilter.Environment = environment
+	roleFilter.Action = action
+	roleFilter.AccessType = accessType
+	return roleFilter
+}
+func CreateRoleFilterForDynamicEntityName(entity string, teamName string, environment string, action string, accessType string, entityName string) ResponseDTOs.RoleFilter {
+	var roleFilter ResponseDTOs.RoleFilter
+	roleFilter.Entity = entity
+	roleFilter.Team = teamName
+	roleFilter.EntityName = entityName
 	roleFilter.Environment = environment
 	roleFilter.Action = action
 	roleFilter.AccessType = accessType

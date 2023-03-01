@@ -188,6 +188,9 @@ func (baseConfigRouter BaseConfigRouter) UnmarshalGivenResponseBody(response []b
 	switch apiName {
 	case "SaveConfigmapApi":
 		json.Unmarshal(response, &baseConfigRouter.createAppResponseDto)
+
+	case "deleteAppApi":
+		json.Unmarshal(response, &baseConfigRouter.deleteResponseDto)
 	}
 	return baseConfigRouter
 }
@@ -212,7 +215,7 @@ func DeleteApp(appId int, appName string, TeamId int, TemplateId int, authToken 
 	resp, err := MakeApiCall("/orchestrator/app/"+strconv.Itoa(appId), http.MethodDelete, string(byteValueOfDeleteApp), nil, authToken)
 	HandleError(err, "DeleteAppApi")
 	baseConfigRouter := BaseConfigRouter{}
-	apiRouter := baseConfigRouter.UnmarshalGivenResponseBody(resp.Body(), "DeleteAppApi")
+	apiRouter := baseConfigRouter.UnmarshalGivenResponseBody(resp.Body(), "deleteAppApi")
 	return apiRouter.deleteResponseDto
 }
 
