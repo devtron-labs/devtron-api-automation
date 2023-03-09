@@ -64,6 +64,7 @@ const (
 	RefreshMaterialsApi                       string = "RefreshMaterialsApi"
 	GetAppDeploymentStatusTimelineApi         string = "GetAppDeploymentStatusTimelineApi"
 	GetAppDeploymentStatusTimelineApiUrl      string = "orchestrator/app/deployment-status/timeline/"
+	GitListAutocompleteApi                    string = "GitListAutocompleteApi"
 
 	TIMELINE_STATUS_DEPLOYMENT_INITIATED   ResponseDTOs.TimelineStatus = "DEPLOYMENT_INITIATED"
 	TIMELINE_STATUS_GIT_COMMIT             ResponseDTOs.TimelineStatus = "GIT_COMMIT"
