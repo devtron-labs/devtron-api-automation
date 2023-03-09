@@ -84,11 +84,19 @@ type CdWorkflowResponseDto struct {
 }
 
 type CreateAppRequestDto struct {
-	Id         int    `json:"id"`
-	AppName    string `json:"appName"`
-	TeamId     int    `json:"teamId"`
-	TemplateId int    `json:"templateId"`
+	Id         int      `json:"id"`
+	AppName    string   `json:"appName"`
+	TeamId     int      `json:"teamId"`
+	TemplateId int      `json:"templateId"`
+	Labels     []Labels `json:"labels"`
 }
+
+type Labels struct {
+	Key       string `json:"key"`
+	Value     string `json:"value"`
+	Propagate bool   `json:"propagate"`
+}
+
 type CreateAppResponseDto struct {
 	Code   int                 `json:"code"`
 	Status string              `json:"status"`
@@ -263,33 +271,34 @@ type StructPipelineConfigRouter struct {
 	getAppDetailsResponseDto     GetAppDetailsResponseDto
 	saveAppCiPipelineResponseDTO SaveAppCiPipelineResponseDTO
 	//getCiPipelineViaIdResponseDTO      GetCiPipelineViaIdResponseDTO
-	getContainerRegistryResponseDTO    GetContainerRegistryResponseDTO
-	getChartReferenceResponseDTO       GetChartReferenceResponseDTO
-	getAppTemplateResponseDto          GetAppTemplateResponseDto
-	getCdPipelineStrategiesResponseDto GetCdPipelineStrategiesResponseDto
-	pipelineSuggestedCDResponseDTO     PipelineSuggestedCDResponseDTO
-	environmentDetailsResponseDTO      EnvironmentDetailsResponseDTO
-	saveDeploymentTemplateResponseDTO  SaveDeploymentTemplateResponseDTO
-	getWorkflowDetails                 RequestDTOs.GetWorkflowDetails
-	createWorkflowResponseDto          ResponseDTOs.CreateWorkflowResponseDto
-	fetchSuggestedCiPipelineName       FetchSuggestedCiPipelineName
-	fetchAllAppWorkflowResponseDto     FetchAllAppWorkflowResponseDto
-	getAppDeploymentStatusTimelineDto  ResponseDTOs.GetAppDeploymentStatusTimelineDTO
-	saveCdPipelineRequestDTO           RequestDTOs.SaveCdPipelineRequestDTO
-	saveCdPipelineResponseDTO          ResponseDTOs.SaveCdPipelineResponseDTO
-	deleteCdPipelineRequestDTO         RequestDTOs.DeleteCdPipelineRequestDTO
-	getCdPipeResponseDTO               ResponseDTOs.GetCdPipeResponseDTO
-	getWorkflowStatusResponseDTO       ResponseDTOs.GetWorkflowStatusResponseDTO
-	getCiPipelineMaterialResponseDTO   ResponseDTOs.GetCiPipelineMaterialResponseDTO
-	triggerCiPipelineResponseDTO       ResponseDTOs.TriggerCiPipelineResponseDTO
-	updateAppMaterialResponseDTO       ResponseDTOs.UpdateAppMaterialResponseDTO
-	appListForAutocompleteResponseDTO  ResponseDTOs.AppListForAutocompleteResponseDTO
-	appListByTeamIdsResponseDTO        ResponseDTOs.AppListByTeamIdsResponseDTO
-	fetchMaterialsResponseDTO          ResponseDTOs.FetchMaterialsResponseDTO
-	getCiPipelineMinResponseDTO        ResponseDTOs.GetCiPipelineMinResponseDTO
-	refreshMaterialsResponseDTO        ResponseDTOs.RefreshMaterialsResponseDTO
-	saveAppCiPipelineRequestDTO        RequestDTOs.SaveAppCiPipelineRequestDTO
-	getCiPipelineViaIdResponseDTO      ResponseDTOs.GetCiPipelineViaIdResponseDTO
+	getContainerRegistryResponseDTO       GetContainerRegistryResponseDTO
+	getChartReferenceResponseDTO          GetChartReferenceResponseDTO
+	getAppTemplateResponseDto             GetAppTemplateResponseDto
+	getCdPipelineStrategiesResponseDto    GetCdPipelineStrategiesResponseDto
+	pipelineSuggestedCDResponseDTO        PipelineSuggestedCDResponseDTO
+	environmentDetailsResponseDTO         EnvironmentDetailsResponseDTO
+	saveDeploymentTemplateResponseDTO     SaveDeploymentTemplateResponseDTO
+	getWorkflowDetails                    RequestDTOs.GetWorkflowDetails
+	createWorkflowResponseDto             ResponseDTOs.CreateWorkflowResponseDto
+	fetchSuggestedCiPipelineName          FetchSuggestedCiPipelineName
+	fetchAllAppWorkflowResponseDto        FetchAllAppWorkflowResponseDto
+	getAppDeploymentStatusTimelineDto     ResponseDTOs.GetAppDeploymentStatusTimelineDTO
+	saveCdPipelineRequestDTO              RequestDTOs.SaveCdPipelineRequestDTO
+	saveCdPipelineResponseDTO             ResponseDTOs.SaveCdPipelineResponseDTO
+	deleteCdPipelineRequestDTO            RequestDTOs.DeleteCdPipelineRequestDTO
+	getCdPipeResponseDTO                  ResponseDTOs.GetCdPipeResponseDTO
+	getWorkflowStatusResponseDTO          ResponseDTOs.GetWorkflowStatusResponseDTO
+	getCiPipelineMaterialResponseDTO      ResponseDTOs.GetCiPipelineMaterialResponseDTO
+	triggerCiPipelineResponseDTO          ResponseDTOs.TriggerCiPipelineResponseDTO
+	updateAppMaterialResponseDTO          ResponseDTOs.UpdateAppMaterialResponseDTO
+	appListForAutocompleteResponseDTO     ResponseDTOs.AppListForAutocompleteResponseDTO
+	appListByTeamIdsResponseDTO           ResponseDTOs.AppListByTeamIdsResponseDTO
+	fetchMaterialsResponseDTO             ResponseDTOs.FetchMaterialsResponseDTO
+	getCiPipelineMinResponseDTO           ResponseDTOs.GetCiPipelineMinResponseDTO
+	refreshMaterialsResponseDTO           ResponseDTOs.RefreshMaterialsResponseDTO
+	saveAppCiPipelineRequestDTO           RequestDTOs.SaveAppCiPipelineRequestDTO
+	getCiPipelineViaIdResponseDTO         ResponseDTOs.GetCiPipelineViaIdResponseDTO
+	getGitAccountsAutocompleteResponseDTO ResponseDTOs.GetGitAccountsAutocompleteResponseDTO
 }
 
 /*type EnvironmentConfigPipelineConfigRouter struct {
@@ -307,6 +316,7 @@ func GetEnvironmentConfigPipelineConfigRouter() (*EnvironmentConfigPipelineConfi
 		return nil, errors.New("could not get config from environment")
 	}
 	return cfg, err
+}
 }*/
 
 func GetAppRequestDto(appName string, teamId int, templateId int) CreateAppRequestDto {
@@ -356,6 +366,25 @@ func HitCreateAppApi(payload []byte, appName string, teamId int, templateId int,
 	pipelineConfigRouter := structPipelineConfigRouter.UnmarshalGivenResponseBody(resp.Body(), CreateAppApi)
 	return pipelineConfigRouter.createAppResponseDto
 }
+
+func GetPayloadForCreateDevtronApp(appName string, teamId int, templateId int, labels []Labels) CreateAppRequestDto {
+	var createAppRequestDto CreateAppRequestDto
+	createAppRequestDto.AppName = appName
+	createAppRequestDto.TeamId = teamId
+	createAppRequestDto.TemplateId = templateId
+	createAppRequestDto.Labels = labels
+	return createAppRequestDto
+}
+
+func HitCreateDevtronAppApi(payload []byte, authToken string) CreateAppResponseDto {
+	resp, err := Base.MakeApiCall(CreateAppApiUrl, http.MethodPost, string(payload), nil, authToken)
+	Base.HandleError(err, CreateAppApi)
+
+	structPipelineConfigRouter := StructPipelineConfigRouter{}
+	pipelineConfigRouter := structPipelineConfigRouter.UnmarshalGivenResponseBody(resp.Body(), CreateAppApi)
+	return pipelineConfigRouter.createAppResponseDto
+}
+
 func GetAppMaterialRequestDto(appId int, gitProviderId int, fetchSubmodules bool) CreateAppMaterialRequestDto {
 	//pipelineConfig, _ := GetEnvironmentConfigPipelineConfigRouter()
 	envConf := Base.ReadBaseEnvConfig()
@@ -750,6 +779,13 @@ func HitRefreshMaterialsApi(gitMaterialId string, authToken string) ResponseDTOs
 	return pipelineConfigRouter.refreshMaterialsResponseDTO
 }
 
+func HitGetGitListAutocomplete(appId string, authToken string) ResponseDTOs.GetGitAccountsAutocompleteResponseDTO {
+	resp, err := Base.MakeApiCall(CreateAppApiUrl+"/"+appId+"/autocomplete/git", http.MethodGet, "", nil, authToken)
+	Base.HandleError(err, GitListAutocompleteApi)
+	structPipelineConfigRouter := StructPipelineConfigRouter{}
+	pipelineConfigRouter := structPipelineConfigRouter.UnmarshalGivenResponseBody(resp.Body(), GitListAutocompleteApi)
+	return pipelineConfigRouter.getGitAccountsAutocompleteResponseDTO
+}
 func (structPipelineConfigRouter StructPipelineConfigRouter) UnmarshalGivenResponseBody(response []byte, apiName string) StructPipelineConfigRouter {
 	switch apiName {
 	case DeleteAppMaterialApi:
@@ -810,6 +846,8 @@ func (structPipelineConfigRouter StructPipelineConfigRouter) UnmarshalGivenRespo
 		json.Unmarshal(response, &structPipelineConfigRouter.getCiPipelineMinResponseDTO)
 	case RefreshMaterialsApi:
 		json.Unmarshal(response, &structPipelineConfigRouter.refreshMaterialsResponseDTO)
+	case GitListAutocompleteApi:
+		json.Unmarshal(response, &structPipelineConfigRouter.getGitAccountsAutocompleteResponseDTO)
 	}
 	return structPipelineConfigRouter
 }
